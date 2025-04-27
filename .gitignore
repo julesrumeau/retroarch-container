@@ -1,0 +1,12 @@
+roms/
+*.iso
+*.bin
+*.img
+*.cue
+*.zip
+*.7z
+*.sfc
+*.nes
+*.gba
+*.nds
+*.n64
