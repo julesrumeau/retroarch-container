@@ -1,28 +1,9 @@
-version: "3.8"
-
 services:
-  retroarch:
-    image: lscr.io/linuxserver/retroarch:latest
-    container_name: retroarch
+  retroarch-web:
+    image: inglebard/retroarch-web:latest
+    container_name: retroarch-web
     ports:
-      - "8080:80"  # Interface Web de RetroArch
+      - "8080:80"  # Accès via le port 8080 dans le navigateur
     volumes:
-      - ./roms:/roms
-      - ./config/retroarch:/config
-    environment:
-      - PUID=1000
-      - PGID=1000
-    restart: unless-stopped
-
-  sunshine:
-    image: jakewharton/sunshine:latest
-    container_name: sunshine
-    ports:
-      - "47984-48010:47984-48010/udp" # ports Sunshine pour le stream
-      - "47984:47984/tcp"
-    environment:
-      - PUID=1000
-      - PGID=1000
-    devices:
-      - /dev/dri:/dev/dri # pour l'accès au GPU
+      - ./roms:/roms  # Monte ton dossier local des ROMs dans le conteneur
     restart: unless-stopped
