@@ -1,9 +1,56 @@
+
+volumes:
+    mysql_data:
+    romm_resources:
+    romm_redis_data:
+
 services:
-  retroarch-web:
-    image: inglebard/retroarch-web:latest
-    container_name: retroarch-web
-    ports:
-      - "8080:80"  # Accès via le port 8080 dans le navigateur
-    volumes:
-      - ./roms:/roms  # Monte ton dossier local des ROMs dans le conteneur
-    restart: unless-stopped
+    romm:
+        image: rommapp/romm:latest
+        container_name: romm
+        restart: unless-stopped
+        environment:
+            - DB_HOST=romm-db
+            - DB_NAME=romm # Should match MARIADB_DATABASE in mariadb
+            - DB_USER=romm-user # Should match MARIADB_USER in mariadb
+            - DB_PASSWD=root
+            - ROMM_AUTH_SECRET_KEY=822d3ae4de1bd064766ecdc0e1d23dd119013234de01fd3cd3a494b3bd61afa6
+            - IGDB_CLIENT_ID=i0xq53konje9bvn48l94v3v3b5wedn
+            - IGDB_CLIENT_SECRET=g2f7ymfww0jb9d9mi6wael00ex4rzq
+            - MOBYGAMES_API_KEY= # https://www.mobygames.com/info/api/
+            - STEAMGRIDDB_API_KEY= # https://github.com/rommapp/romm/wiki/Generate-API-Keys#steamgriddb
+        volumes:
+            - romm_resources:/romm/resources # Resources fetched from IGDB (covers, screenshots, etc.)
+            - romm_redis_data:/redis-data # Cached data for background tasks
+            - /opt/romm/library:/romm/library # Your game library. Check https://github.com/rommapp/romm?tab=readme-ov-file#folder-structure for more details.
+            - /opt/romm/assets:/romm/assets # Uploaded saves, states, etc.
+            - /opt/romm/config:/romm/config # Path where config.yml is stored
+        ports:
+            - 80:8080
+        depends_on:
+            romm-db:
+                condition: service_healthy
+                restart: true
+
+    romm-db:
+        image: mariadb:latest
+        container_name: romm-db
+        restart: unless-stopped
+        environment:
+            - MARIADB_ROOT_PASSWORD=root
+            - MARIADB_DATABASE=romm
+            - MARIADB_USER=romm-user
+            - MARIADB_PASSWORD=root
+        volumes:
+            - mysql_data:/var/lib/mysql
+        healthcheck:
+            test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+            start_period: 30s
+            start_interval: 10s
+            interval: 10s
+            timeout: 5s
+            retries: 5
+
+            #TODO créer des fichier dans le répertoire des disques dur redondé 
+
+            #mkdir -p /opt/romm/library/{nes,snes,gbc,gb,gba,n64,psx,ps2,psp,genesis,mastersystem}/roms

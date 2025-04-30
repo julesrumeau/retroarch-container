@@ -1,0 +1,7 @@
+emulators:
+  ps2:
+    name: PCSX2
+    command: pcsx2 --fullscreen "%ROM_PATH%"
+    platforms:
+      - ps2
+# je crois il faut intallé pcsx2 sur linux 
